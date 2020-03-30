@@ -1,0 +1,14 @@
+@import '../../variables.scss';
+
+header {
+	padding: 1rem;
+	background-color: $backgroundSecondary;
+	margin-bottom: 4rem;
+}
+
+header h1 small {
+	margin-left: 2rem;
+	font-size: 1rem;
+	font-weight: normal;
+	color: $secondary;
+}
