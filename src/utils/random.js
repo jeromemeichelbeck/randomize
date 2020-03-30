@@ -17,7 +17,7 @@ export const randomFromList = (length, list) => {
 	const [min, max] = [0, list.length - 1]
 
 	for (let i = 0; i < length; i++) {
-		result.push(list[randomInt(min, max)])
+		result.push(list[randomInt(min, max)].trim())
 	}
 
 	return result

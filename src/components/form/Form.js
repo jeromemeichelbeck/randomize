@@ -14,15 +14,10 @@ export const Form = () => {
 	const [typeOfNumber, setTypeOfNumber] = useState(null)
 	const [from, setFrom] = useState(0)
 	const [to, setTo] = useState(100)
-	const [focus, setFocus] = useState(null)
 	const [errors, setErrors] = useState([])
 	const [result, setResult] = useState([])
 
-	const showButton = type && oneOrMany && (lengthOrList || oneOrMany === 'one') && (typeOfNumber || type !== 'number')
-
-	useEffect(() => {
-		if (focus) document.getElementById(focus).focus()
-	}, [focus])
+	const showButton = type && oneOrMany && (listLength || oneOrMany === 'one') && (typeOfNumber || type !== 'number')
 
 	return (
 		<form
@@ -31,17 +26,10 @@ export const Form = () => {
 
 				const newErrors = []
 
-				if (lengthOrList === 'list' && !list.length) {
-					newErrors.push({
-						element: 'list',
-						card: 'list-card',
-						message: `The list of ${capitalize(type)}s can't be empty`
-					})
-				}
-				if (lengthOrList === 'length' && !listLength) {
+				if (oneOrMany === 'many' && !listLength) {
 					newErrors.push({
 						element: 'list-length',
-						card: 'length',
+						card: 'many',
 						message: `The length of the list can't be empty`
 					})
 				}
@@ -77,23 +65,34 @@ export const Form = () => {
 							if (oneOrMany === 'one') {
 								if (typeOfNumber === 'integer') setResult([randomInt(from, to)])
 								else if (typeOfNumber === 'real') setResult([randomFloat(from, to)])
-								else setErrors({ message: 'Unexpected error' })
+								else setErrors([{ message: 'Unexpected error' }])
 							} else if (oneOrMany === 'many') {
-								if (lengthOrList === 'length') {
-									if (typeOfNumber === 'integer')
-										setResult(randomFromLength(from, to, listLength, randomInt))
-									else if (typeOfNumber === 'real')
-										setResult(randomFromLength(from, to, listLength, randomFloat))
-									else setErrors({ message: 'Unexpected error' })
-								} else if (lengthOrList === 'list') {
-								} else {
-									setErrors({ message: 'Unexpected error' })
-								}
+								if (typeOfNumber === 'integer')
+									setResult(randomFromLength(from, to, listLength, randomInt))
+								else if (typeOfNumber === 'real')
+									setResult(randomFromLength(from, to, listLength, randomFloat))
+								else setErrors([{ message: 'Unexpected error' }])
 							} else {
-								setErrors({ message: 'Unexpected error' })
+								setErrors([{ message: 'Unexpected error' }])
 							}
 						}
 						break
+					case 'custom-item':
+						if (list.length === 0) {
+							newErrors.push({
+								element: 'list',
+								card: 'list-card',
+								message: `List of items can't be empty`
+							})
+						}
+
+						setErrors(newErrors)
+
+						if (newErrors.length === 0) {
+							if (oneOrMany === 'one') setResult(randomFromList(1, list))
+							else if (oneOrMany === 'many') setResult(randomFromList(listLength, list))
+							else setErrors([{ message: 'Unexpected error' }])
+						}
 					default:
 						break
 				}
@@ -141,6 +140,16 @@ export const Form = () => {
 					<label className="card" htmlFor="color">
 						Color
 					</label>
+					<input
+						type="radio"
+						id="custom-item"
+						value="custom-item"
+						checked={type === 'custom-item'}
+						onChange={() => setType('custom-item')}
+					/>
+					<label className="card" htmlFor="custom-item">
+						Custom Item
+					</label>
 				</div>
 			</fieldset>
 			{/* On or Many */}
@@ -163,17 +172,35 @@ export const Form = () => {
 						id="many"
 						value="many"
 						checked={oneOrMany === 'many'}
-						onChange={() => setOneOrMany('many')}
+						onChange={() => {
+							setOneOrMany('many')
+						}}
 					/>
 					{type && (
-						<label className="card" htmlFor="many">
-							A list of {capitalize(type)}s
+						<label
+							className={`card${errors.findIndex((error) => error.card === 'many') > -1 ? ' empty' : ''}`}
+							htmlFor="many"
+						>
+							<label htmlFor="list-length">A list of {capitalize(type)}s</label>
+							<input
+								className={
+									'flex' +
+									(errors.findIndex((error) => error.element === 'list-length') > -1 ? ' empty' : '')
+								}
+								type="number"
+								id="list-length"
+								value={listLength}
+								min="1"
+								step="1"
+								onChange={(e) => setListLength(e.target.value)}
+								disabled={oneOrMany !== 'many'}
+							/>
 						</label>
 					)}
 				</div>
 			</fieldset>
 			{/* Length or List */}
-			<fieldset className={oneOrMany === 'many' ? '' : 'hidden'}>
+			{/* <fieldset className={oneOrMany === 'many' ? '' : 'hidden'}>
 				<div className="cards">
 					<input
 						type="radio"
@@ -237,7 +264,7 @@ export const Form = () => {
 						)}
 					</label>
 				</div>
-			</fieldset>
+			</fieldset> */}
 			{/* Case number */}
 			<fieldset className={`big${type === 'number' ? '' : ' hidden'}`}>
 				<div className="cards">
@@ -287,6 +314,22 @@ export const Form = () => {
 							onChange={(e) => setTo(e.target.value)}
 						/>
 					</div>
+				</div>
+			</fieldset>
+			<fieldset className={`big${type === 'custom-item' ? '' : ' hidden'}`}>
+				<div
+					className={`card${errors.findIndex((error) => error.card === 'list-card') > -1 ? ' empty' : ''}`}
+					id="list-card"
+				>
+					<label htmlFor="list">List of Items</label>
+					<textarea
+						className={`
+							flex${errors.findIndex((error) => error.element === 'list') > -1 ? ' empty' : ''}`}
+						id="list"
+						value={list.join(',')}
+						onChange={(e) => setList(e.target.value.split(','))}
+						placeholder={`Separe items with a comma`}
+					></textarea>
 				</div>
 			</fieldset>
 			<fieldset className={`result-container${result.length > 0 ? '' : ' hidden'}`}>
