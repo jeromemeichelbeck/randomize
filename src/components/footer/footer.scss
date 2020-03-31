@@ -1,8 +1,8 @@
 @import '../../variables.scss';
 
 footer {
-	background-color: darken($color: $backgroundSecondary, $amount: 20%);
-	color: darken($color: $textColor, $amount: 20%);
+	background-color: darken($color: $backgroundSecondary, $amount: 15%);
+	color: darken($color: $textColor, $amount: 30%);
 	text-align: center;
 	padding: 1em;
 }
